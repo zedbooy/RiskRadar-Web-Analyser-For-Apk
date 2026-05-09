@@ -16,9 +16,10 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
         th { background-color: #f1f5f9; color: #334155; }
-        .risk-Critique { color: #ef4444; font-weight: bold; }
-        .risk-Élevé { color: #f97316; font-weight: bold; }
-        .risk-Moyen { color: #eab308; font-weight: bold; }
+        .risk-critique { color: #ef4444; font-weight: bold; }
+        .risk-élevé { color: #f97316; font-weight: bold; }
+        .risk-moyen { color: #eab308; font-weight: bold; }
+        .risk-faible { color: #22c55e; font-weight: bold; }
         ul { padding-left: 20px; }
         .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; padding-bottom: 10px;}
     </style>
@@ -30,9 +31,19 @@
         <p><strong>Fichier analysé :</strong> {{ $project }} &nbsp; | &nbsp; <strong>Date :</strong> {{ $date }}</p>
     </div>
 
-    <div class="score-box">
-        <div class="score-text">Score Global de Risque : {{ $score }} / 100 (CRITIQUE)</div>
-        <p style="margin: 5px 0 0 0; color: #7f1d1d;">Cette application présente un niveau de risque inacceptable pour un environnement de production.</p>
+    <div class="score-box" style="border-left-color: {{ $score < 50 ? '#ef4444' : ($score < 85 ? '#eab308' : '#22c55e') }};">
+        <div class="score-text" style="color: {{ $score < 50 ? '#ef4444' : ($score < 85 ? '#eab308' : '#22c55e') }};">
+            Score Global de Risque : {{ $score }} / 100 ({{ strtoupper($risk_level ?? 'Inconnu') }})
+        </div>
+        <p style="margin: 5px 0 0 0; color: #64748b;">
+            @if($score < 50)
+                Cette application présente un niveau de risque critique. Une intervention immédiate est recommandée.
+            @elseif($score < 85)
+                L'application présente des risques modérés. Des corrections sont nécessaires avant le déploiement.
+            @else
+                L'application est globalement conforme aux standards de sécurité de base.
+            @endif
+        </p>
     </div>
 
     <div class="ai-section">
@@ -59,7 +70,15 @@
     <h3>Secrets Exposés</h3>
     <ul>
         @foreach($secrets as $secret)
-            <li><span style="color: #ef4444; font-weight: bold;">[ALERTE]</span> {{ $secret }}</li>
+            <li>
+                <span style="color: #ef4444; font-weight: bold;">[ALERTE]</span> 
+                @if(is_array($secret))
+                    <strong>{{ $secret['type'] ?? 'Secret' }}</strong> : <code>{{ $secret['value'] ?? 'N/A' }}</code> 
+                    <small>({{ $secret['file'] ?? 'Emplacement inconnu' }})</small>
+                @else
+                    {{ $secret }}
+                @endif
+            </li>
         @endforeach
     </ul>
 

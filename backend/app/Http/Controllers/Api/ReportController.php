@@ -6,78 +6,52 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+use App\Models\Scan;
+
 class ReportController extends Controller
 {
     public function exportPdf($id, Request $request)
     {
-        $filename = $request->query('file', 'app-release.apk');
-        $score = $request->query('score', 82);
-        $vulns = $request->query('vulns', 12);
-        $secrets_count = $request->query('secrets', 2);
-        $perms = $request->query('perms', 5);
-        $deps = $request->query('deps', 45);
-        $depsObs = $request->query('depsObs', 8);
+        $scan = Scan::with(['results', 'aiInsights'])->find($id);
 
-        $aiProfileIndex = $request->query('ai_profile', 0);
-        
-        $aiProfiles = [
-            [
-                'summary' => "L'application présente des risques de sécurité majeurs. Des clés d'API cloud sont codées en dur, et plusieurs bibliothèques utilisent des versions vulnérables à l'exécution de code à distance (RCE).",
-                'plan' => [
-                    ['level' => 'Priorité 1', 'desc' => 'Retirer les clés Google Maps API du code source et les déplacer vers une configuration serveur sécurisée.'],
-                    ['level' => 'Priorité 2', 'desc' => 'Mettre à jour com.squareup.retrofit2:retrofit vers la version 2.9.0 ou supérieure.'],
-                    ['level' => 'Priorité 3', 'desc' => 'Restreindre les permissions READ_SMS non justifiées par les fonctionnalités du manifeste.']
-                ]
-            ],
-            [
-                'summary' => "Le code analysé expose de multiples trackers publicitaires agressifs et gère l'authentification de manière non sécurisée sans obfuscation.",
-                'plan' => [
-                    ['level' => 'Priorité 1', 'desc' => 'Mettre à jour le SDK Firebase Authentication pour combler la faille de session.'],
-                    ['level' => 'Priorité 2', 'desc' => 'Obfusquer le code métier avec ProGuard/R8, actuellement le code est facilement rétro-ingénierable.'],
-                    ['level' => 'Priorité 3', 'desc' => 'Retirer les trackers inactifs pour réduire la surface d\'attaque et la fuite de données RGPD.']
-                ]
-            ],
-            [
-                'summary' => "L'architecture est globalement saine, mais l'utilisation de composants très anciens expose l'application à des interceptions réseau.",
-                'plan' => [
-                    ['level' => 'Priorité 1', 'desc' => 'Ajouter la configuration android:usesCleartextTraffic="false" dans le Manifest pour interdire HTTP non sécurisé.'],
-                    ['level' => 'Priorité 2', 'desc' => 'Migrer les dépendances obsolètes vers AndroidX pour bénéficier des correctifs de sécurité modernes.'],
-                    ['level' => 'Priorité 3', 'desc' => 'Supprimer les permissions de localisation en arrière-plan qui ne sont plus nécessaires.']
-                ]
-            ]
-        ];
-
-        $currentAi = $aiProfiles[$aiProfileIndex] ?? $aiProfiles[0];
-
-        $data = [
-            'project' => $filename,
-            'score' => $score,
-            'date' => now()->format('d/m/Y H:i'),
-            'signature' => 'Ghalbane Ziad & Elmahfoudi Anas',
-            'ai_summary' => $currentAi['summary'],
-            'ai_plan' => $currentAi['plan'],
-            'stats' => [
-                'vulnerabilities' => $vulns,
-                'secrets' => $secrets_count,
-                'permissions' => $perms,
-                'dependencies' => $deps,
-                'obsolete' => $depsObs
-            ],
-            'secrets' => [
-                'Clé Google Maps API (trouvée dans res/values/strings.xml)',
-                'Token AWS S3 (trouvé dans BuildConfig.java)'
-            ],
-            'dangerous_permissions' => [
-                'android.permission.READ_SMS',
-                'android.permission.ACCESS_FINE_LOCATION',
-                'android.permission.CAMERA'
-            ],
-            'sbom' => [
-                ['name' => 'com.squareup.retrofit2:retrofit', 'version' => '2.8.0', 'risk' => 'Élevé'],
-                ['name' => 'com.squareup.okhttp3:okhttp', 'version' => '3.12.1', 'risk' => 'Critique'],
-                ['name' => 'com.google.code.gson:gson', 'version' => '2.8.6', 'risk' => 'Moyen'],
-            ]
-        ];
+        if ($scan) {
+            $data = [
+                'project' => $scan->file_name,
+                'score' => $scan->global_score,
+                'risk_level' => $scan->risk_classification,
+                'date' => $scan->created_at->format('d/m/Y H:i'),
+                'signature' => 'Ghalbane Ziad & Elmahfoudi Anas',
+                'ai_summary' => $scan->aiInsights->executive_summary ?? 'Aucun résumé IA disponible.',
+                'ai_plan' => array_map(function($line) {
+                    return ['level' => 'IMPORTANT', 'desc' => ltrim($line, ' -123456789.')];
+                }, explode("\n", $scan->aiInsights->correction_priorities ?? "Aucun plan d'action spécifique.")),
+                'stats' => [
+                    'vulnerabilities' => count($scan->results->vulnerabilities ?? []),
+                    'secrets' => count($scan->results->secrets ?? []),
+                    'permissions' => count($scan->results->dangerous_permissions ?? []),
+                    'dependencies' => count($scan->results->sbom_data ?? []),
+                    'obsolete' => count($scan->results->obsolete_dependencies ?? [])
+                ],
+                'secrets' => $scan->results->secrets ?? [],
+                'dangerous_permissions' => $scan->results->dangerous_permissions ?? [],
+                'sbom' => $scan->results->sbom_data ?? []
+            ];
+        } else {
+            // Fallback to dummy data for testing
+            $data = [
+                'project' => 'App-demo.apk',
+                'score' => 85,
+                'risk_level' => 'faible',
+                'date' => now()->format('d/m/Y H:i'),
+                'signature' => 'Ghalbane Ziad & Elmahfoudi Anas',
+                'ai_summary' => "L'application est globalement saine.",
+                'ai_plan' => [],
+                'stats' => ['vulnerabilities' => 0, 'secrets' => 0, 'permissions' => 5, 'dependencies' => 10, 'obsolete' => 0],
+                'secrets' => [],
+                'dangerous_permissions' => [],
+                'sbom' => []
+            ];
+        }
 
         $pdf = Pdf::loadView('pdf.report', $data);
         return $pdf->download('RiskRadar_Report_' . $id . '.pdf');

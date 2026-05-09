@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('scans', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('file_name');
+            $table->string('file_path')->nullable();
             $table->enum('file_type', ['apk', 'zip', 'gradle', 'manifest']);
             $table->enum('status', ['pending', 'extracting', 'analyzing', 'ai_processing', 'completed', 'failed'])->default('pending');
             $table->integer('global_score')->nullable();

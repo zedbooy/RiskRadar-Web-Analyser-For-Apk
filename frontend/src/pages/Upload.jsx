@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UploadCloud, ArrowLeft, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
+import axios from 'axios';
+
 function Upload() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -9,6 +11,7 @@ function Upload() {
   
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [modules, setModules] = useState({
     sbom: true,
     manifest: true,
@@ -49,10 +52,31 @@ function Upload() {
     setModules(prev => ({ ...prev, [moduleKey]: !prev[moduleKey] }));
   };
 
-  const handleUpload = () => {
-    if (!selectedFile) return;
-    // Passe à la page de chargement en lui envoyant éventuellement des données
-    navigate('/loading', { state: { file: selectedFile.name, modules } });
+  const handleUpload = async () => {
+    if (!selectedFile || isUploading) return;
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    
+    // Add selected modules
+    Object.keys(modules).forEach(key => {
+      if (modules[key]) formData.append('modules[]', key);
+    });
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/v1/scans/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      const scanId = response.data.id;
+      navigate('/loading', { state: { scanId, fileName: selectedFile.name, modules } });
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Erreur lors de l\'upload : ' + (error.response?.data?.message || 'Vérifiez que le serveur Laravel est lancé.'));
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -131,11 +155,11 @@ function Upload() {
       <div className="mt-8 flex justify-end">
         <button 
           onClick={handleUpload}
-          disabled={!selectedFile}
-          className={`px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition-all ${selectedFile ? 'bg-rr-primary hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30 cursor-pointer' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}
+          disabled={!selectedFile || isUploading}
+          className={`px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition-all ${selectedFile && !isUploading ? 'bg-rr-primary hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30 cursor-pointer' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}
         >
           <ShieldAlert className="w-5 h-5" />
-          Lancer l'Analyse
+          {isUploading ? 'Analyse en cours...' : 'Lancer l\'Analyse'}
         </button>
       </div>
 

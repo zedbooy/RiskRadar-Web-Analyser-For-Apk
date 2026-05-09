@@ -11,6 +11,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/scans/{id}/details/{module}', [ScanController::class, 'details']);
     Route::get('/scans/{id}/ai-insights', [ScanController::class, 'aiInsights']);
     Route::get('/scans/{id}/export/pdf', [ReportController::class, 'exportPdf']);
+    Route::get('/scans/{id}/report/pdf', [ReportController::class, 'exportPdf']);
     Route::get('/scans/{id}/export/sbom', [ReportController::class, 'exportSbomJson']);
     Route::get('/scans/{id}/export/csv', [ReportController::class, 'exportCsv']);
 });
