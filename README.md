@@ -24,10 +24,9 @@ RiskRadar is built to:
 Watch the full RiskRadar security analysis workflow in action:
 
 <div align="center">
-  <video src="https://github.com/zedbooy/RiskRadar-Web-Analyser-For-Apk/raw/main/rapport/RiskRadarAnalyserDim.mp4" width="100%" controls>
+  <video src="https://github.com/zedbooy/RiskRadar-Web-Analyser-For-Apk/raw/main/rapport/RiskRadarAnalyserDim.mp4" width="100%" controls controlsList="nodownload" oncontextmenu="return false;">
     Your browser does not support the video tag.
   </video>
-  <p><i>If the video does not play above, you can <b><a href="https://github.com/zedbooy/RiskRadar-Web-Analyser-For-Apk/raw/main/rapport/RiskRadarAnalyserDim.mp4">click here to download or view the video directly</a></b>.</i></p>
 </div>
 
 ---
