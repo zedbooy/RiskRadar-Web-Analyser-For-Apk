@@ -2,7 +2,7 @@
 
 RiskRadar is a specialized DevSecOps platform designed to perform static security analysis (SAST) on Android applications (APK). It acts as a "Dependency Risk Radar," automatically extracting the Software Bill of Materials (SBOM) and leveraging Artificial Intelligence to provide prioritized, actionable remediation plans.
 
-## 🎯 Purpose of the Application
+##  Purpose of the Application
 
 The primary goal of RiskRadar is to secure the mobile supply chain. Modern applications rely heavily on third-party libraries, which often introduce transitive vulnerabilities, outdated code, or abusive trackers. 
 
@@ -12,14 +12,14 @@ RiskRadar is built to:
 3. **Expose Secrets**: Locate hardcoded API keys, passwords, and sensitive URLs buried within the code.
 4. **AI-Driven Remediation**: Translate raw JSON findings into a human-readable **Update Plan** using a Large Language Model (Llama 3 via Groq/Nvidia API), strictly adhering to the **OWASP MASVS** (Mobile Application Security Verification Standard) guidelines.
 
-## ⚙️ How It Works (The Architecture)
+##  How It Works (The Architecture)
 
 1. **Upload Phase (React + Vite)**: The user uploads an Android `.apk` file through a sleek, glassmorphism-styled dashboard.
 2. **Analysis Phase (Python + Androguard)**: A Python engine runs asynchronously to decompile the APK, parse the `AndroidManifest.xml`, extract permissions, and heuristically scan the bytecode for dependencies and secrets.
 3. **Scoring Phase (Laravel + MySQL)**: The backend calculates a global security score (0-100) based on the severity of the findings (Critical, High, Medium, Low).
 4. **AI Consulting Phase (Llama 3)**: The structured data is sent to the AI, which generates an executive summary and a prioritized remediation plan.
 
-## 🚀 How to Use the App
+##  How to Use the App
 
 ### 1. Start the Environment
 To run the platform locally, you must start three parallel services:
