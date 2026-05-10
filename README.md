@@ -19,7 +19,16 @@ RiskRadar is built to:
 3. **Scoring Phase (Laravel + MySQL)**: The backend calculates a global security score (0-100) based on the severity of the findings (Critical, High, Medium, Low).
 4. **AI Consulting Phase (Llama 3)**: The structured data is sent to the AI, which generates an executive summary and a prioritized remediation plan.
 
-##  How to Use the App
+## 🎥 Demonstration
+
+Watch the full RiskRadar security analysis workflow in action:
+
+![RiskRadar Demonstration](rapport/RiskRadarAnalyserDim.mp4)
+
+---
+
+## 🚀 How to Use the App
+
 
 ### 1. Start the Environment
 To run the platform locally, you must start three parallel services:
