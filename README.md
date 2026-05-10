@@ -23,7 +23,12 @@ RiskRadar is built to:
 
 Watch the full RiskRadar security analysis workflow in action:
 
-![RiskRadar Demonstration](rapport/RiskRadarAnalyserDim.mp4)
+<div align="center">
+  <video src="rapport/RiskRadarAnalyserDim.mp4" width="100%" controls>
+    Your browser does not support the video tag.
+  </video>
+  <p><i>If the video does not load, you can <a href="rapport/RiskRadarAnalyserDim.mp4">view it directly here</a>.</i></p>
+</div>
 
 ---
 
